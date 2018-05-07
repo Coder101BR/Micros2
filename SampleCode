@@ -1,0 +1,62 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+void Convert_UserCMD_To_Int(char *Str, int *RW, int *Data, int *Address);
+
+int main()
+{
+
+    int ReadWrite = 55;
+    int Data;
+    int Address;
+
+
+    /* Simulation of a RS232 string */
+    char TestStr[15] = {"W,06,11"};
+
+    Convert_UserCMD_To_Int(TestStr, &ReadWrite, &Data, &Address);
+
+    printf("\nReadWrite: %d", ReadWrite);
+
+    printf("\nData: %d", Data);
+
+    printf("\nAddress: %d", Address);
+
+
+    return 0;
+}
+
+void Convert_UserCMD_To_Int(char *Str, int *RW, int *Data, int *Address)
+{
+    char StrAux[3];
+    /* Update *RW */
+    if((Str[0] == 'w') | (Str[0] == 'W'))
+    {
+        /* Set *RW to write state*/
+        *RW = 0;
+    }
+
+    else if((Str[0] == 'r') | (Str[0] == 'R'))
+    {
+        /* Set *RW to read state*/
+        *RW = 1;
+    }
+
+    else
+    {
+      printf("\nInvalid command");
+    }
+
+    /* Update Data */
+    StrAux[0] = Str[2];
+    StrAux[1] = Str[3];
+    *Data = atoi(StrAux); /* Convert string to int */
+
+    /* Update Address */
+    StrAux[0] = Str[5];
+    StrAux[1] = Str[6];
+    *Address = atoi(StrAux); /* Convert string to int */
+
+
+}
