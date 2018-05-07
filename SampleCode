@@ -3,6 +3,10 @@
 #include <string.h>
 
 void Convert_UserCMD_To_Int(char *Str, int *RW, int *Data, int *Address);
+void Write_Data(int Data, int bits);
+
+#define GPIO_PIN_SET 1
+#define GPIO_PIN_RESET 0
 
 int main()
 {
@@ -13,7 +17,7 @@ int main()
 
 
     /* Simulation of a RS232 string */
-    char TestStr[15] = {"W,06,11"};
+    char TestStr[15] = {"r,3,11"};
 
     Convert_UserCMD_To_Int(TestStr, &ReadWrite, &Data, &Address);
 
@@ -22,6 +26,8 @@ int main()
     printf("\nData: %d", Data);
 
     printf("\nAddress: %d", Address);
+
+    Write_Data(Data, 4);
 
 
     return 0;
@@ -48,6 +54,7 @@ void Convert_UserCMD_To_Int(char *Str, int *RW, int *Data, int *Address)
       printf("\nInvalid command");
     }
 
+
     /* Update Data */
     StrAux[0] = Str[2];
     StrAux[1] = Str[3];
@@ -57,6 +64,37 @@ void Convert_UserCMD_To_Int(char *Str, int *RW, int *Data, int *Address)
     StrAux[0] = Str[5];
     StrAux[1] = Str[6];
     *Address = atoi(StrAux); /* Convert string to int */
+}
+
+void Write_Data(int Data, int bits)
+{
+    int WriteData[bits];
+    int Mask = 1;
+    int i;
+/*
+    WriteData[0] = Data & 1;
+    WriteData[1] = Data & 2;
+    WriteData[2] = Data & 4;
+    WriteData[3] = Data & 8;
+*/
+
+    for(i =0; i < bits; i++)
+    {
+        WriteData[i] = (Data & Mask);
+
+        if(WriteData[i] > 0)
+        {
+            WriteData[i] = GPIO_PIN_SET;
+        }
+        else
+        {
+            WriteData[i] = GPIO_PIN_RESET;
+        }
+
+        printf("\nWriteData[%d] = %d", i,WriteData[i]); // Substituir para escrever nos GPIO
+        Mask = Mask << 1;
+    }
+
 
 
 }
