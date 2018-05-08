@@ -19,8 +19,7 @@ int main()
 
 
     /* Simulation of a RS232 string */
-    char TestStr[15] = {"W,12,10"};
-
+    char TestStr[15] = {"W,12,10"}; 
     //char TestStr[15] = {"r,12"};
 
     Convert_UserCMD_To_Int(TestStr, &ReadWrite, &Data, &Address);
