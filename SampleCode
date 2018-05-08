@@ -138,10 +138,9 @@ void Read_Data(int *DataRead, int Read_Permission)
         *DataRead = 0;
 
         /* Read data from HW and put it in a array */
-        int ArraySimulation[4] ={1,0,1,1};
+        int ArraySimulation[4] ={1,1,1,0};
 
-        *DataRead = ((ArraySimulation[3] << 3) | (ArraySimulation[2] << 2) | (ArraySimulation[1] << 1) | (ArraySimulation[0] << 0));
-
+        *DataRead = ((ArraySimulation[0] << 3) | (ArraySimulation[1] << 2) | (ArraySimulation[2] << 1) | (ArraySimulation[3] << 0));
 
 
     }
