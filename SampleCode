@@ -6,6 +6,7 @@ void Convert_UserCMD_To_Int(char *Str, int *RW, int *Data, int *Address);
 void Write_Data(int Data, int bits, int Write_Permission);
 void Write_Address(int Data, int bits);
 void ChipSelect(int CS);
+void Read_Data(int *DataRead, int Read_Permission);
 
 #define GPIO_PIN_SET 1
 #define GPIO_PIN_RESET 0
@@ -16,10 +17,10 @@ int main()
     int ReadWrite = 55;
     int Data;
     int Address;
-
+    int ReadData = 66;
 
     /* Simulation of a RS232 string */
-    char TestStr[15] = {"W,12,10"}; 
+    char TestStr[15] = {"r,12,10"};
     //char TestStr[15] = {"r,12"};
 
     Convert_UserCMD_To_Int(TestStr, &ReadWrite, &Data, &Address);
@@ -28,9 +29,26 @@ int main()
     printf("\nData: %d", Data);
     printf("\nAddress: %d", Address);
 
+
     Write_Address(Address, 4);
-    Write_Data(Data, 4, ReadWrite);
-    ChipSelect(0);
+
+    if(ReadWrite == 0)
+    {
+        Write_Data(Data, 4, ReadWrite);
+        ChipSelect(0); /* Enable CS signal */
+        /* wait some time */
+        ChipSelect(1); /* Disable write line, read line, cs line and put every data to input */
+    }
+
+    else if(ReadWrite == 1)
+    {
+        ChipSelect(0);
+        Read_Data(&ReadData, ReadWrite);
+        /* Ler na serial */
+        printf("\nReadData: %d", ReadData);
+        ChipSelect(1); /* Disable write line, read line, cs line and put every data to input */
+    }
+
 
 
     return 0;
@@ -70,6 +88,7 @@ void Convert_UserCMD_To_Int(char *Str, int *RW, int *Data, int *Address)
 
     else
     {
+        /* Ou não faz nada e seta *RW igual a um valor diferente*/
       *RW = 1;
       printf("\nInvalid command");
     }
@@ -83,12 +102,7 @@ void Write_Data(int Data, int bits, int Write_Permission)
     int WriteData[bits];
     int Mask = 1;
     int i;
-/*
-    WriteData[0] = Data & 1;
-    WriteData[1] = Data & 2;
-    WriteData[2] = Data & 4;
-    WriteData[3] = Data & 8;
-*/
+
     if(Write_Permission == 0)
     {
         for(i =0; i < bits; i++)
@@ -107,6 +121,29 @@ void Write_Data(int Data, int bits, int Write_Permission)
             printf("\nWriteData[%d] = %d", i,WriteData[i]); // Substituir para escrever nos GPIO
             Mask = Mask << 1;
         }
+
+        // Set 0 to write line and Set 1 to read line
+    }
+
+}
+
+void Read_Data(int *DataRead, int Read_Permission)
+{
+
+    if(Read_Permission == 1)
+    {
+        // Hardware: Set 1 to write line and Set 0 to read line
+
+        /* Clean variable */
+        *DataRead = 0;
+
+        /* Read data from HW and put it in a array */
+        int ArraySimulation[4] ={1,0,1,1};
+
+        *DataRead = ((ArraySimulation[3] << 3) | (ArraySimulation[2] << 2) | (ArraySimulation[1] << 1) | (ArraySimulation[0] << 0));
+
+
+
     }
 
 }
