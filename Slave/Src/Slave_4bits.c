@@ -6,6 +6,7 @@
  */
 
 /* Includes ------------------------------------------------------------------*/
+#include "Slave_4bits.h"
 #include "gpio.h"
 
 void Read_Address_Request(int *AddrRead)
@@ -51,12 +52,15 @@ void Write_Data_at_Address(int AddrRead, int VectorData[])
 {
 
     int DataSentFromMaster[4];
-    /* Read data sent from master */
 
-    DataSentFromMaster[0] = 1;
-    DataSentFromMaster[1] = 1;
-    DataSentFromMaster[2] = 0;
-    DataSentFromMaster[3] = 1;
+
+	DATA_INPUT_MODE(); /* Set data pins to input mode */
+
+	/* Read data sent from master */
+    DataSentFromMaster[0] = HAL_GPIO_ReadPin(GPIOB, Data0_Pin);
+    DataSentFromMaster[1] = HAL_GPIO_ReadPin(GPIOB, Data1_Pin);
+    DataSentFromMaster[2] = HAL_GPIO_ReadPin(GPIOB, Data2_Pin);
+    DataSentFromMaster[3] = HAL_GPIO_ReadPin(GPIOB, Data3_Pin);
 
 
     VectorData[AddrRead] = ((DataSentFromMaster[0] << 3) | (DataSentFromMaster[1] << 2) | (DataSentFromMaster[2] << 1) | (DataSentFromMaster[3] << 0));
