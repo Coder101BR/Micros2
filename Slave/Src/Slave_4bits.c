@@ -11,15 +11,18 @@
 
 void Read_Address_Request(int *AddrRead)
 {
+	int InputArray[4];
+
     /* Clean variable */
     *AddrRead = 0;
 
     /* Read data from HW and put it in a array */
-    int ArraySimulation[4] ={0,1,1,0};
+    InputArray[0] = HAL_GPIO_ReadPin(GPIOC, Addr3_Pin);
+    InputArray[1] = HAL_GPIO_ReadPin(GPIOC, Addr2_Pin);
+    InputArray[2] = HAL_GPIO_ReadPin(GPIOC, Addr1_Pin);
+    InputArray[3] = HAL_GPIO_ReadPin(GPIOC, Addr0_Pin);
 
-
-    *AddrRead = ((ArraySimulation[0] << 3) | (ArraySimulation[1] << 2) | (ArraySimulation[2] << 1) | (ArraySimulation[3] << 0));
-
+    *AddrRead = ((InputArray[0] << 3) | (InputArray[1] << 2) | (InputArray[2] << 1) | (InputArray[3] << 0));
 }
 
 void Read_Data_of_Address(int AddrRead, int VectorData[])
@@ -42,9 +45,17 @@ void Read_Data_of_Address(int AddrRead, int VectorData[])
             WriteData[i] = GPIO_PIN_RESET;
         }
 
-        printf("\nWriteData[%d] = %d", i,WriteData[i]); // Substituir para escrever nos GPIO
+       // printf("\nWriteData[%d] = %d", i,WriteData[i]); // Substituir para escrever nos GPIO
         Mask = Mask << 1;
     }
+
+    /* Enable DATA_OUTPUT_MODE */
+	DATA_OUTPUT_MODE();
+    /* Write data in data pins*/
+    HAL_GPIO_WritePin(GPIOB, Data3_Pin , WriteData[3]);
+    HAL_GPIO_WritePin(GPIOB, Data2_Pin , WriteData[2]);
+    HAL_GPIO_WritePin(GPIOB, Data1_Pin , WriteData[1]);
+    HAL_GPIO_WritePin(GPIOB, Data0_Pin , WriteData[0]);
 
 }
 
@@ -57,10 +68,10 @@ void Write_Data_at_Address(int AddrRead, int VectorData[])
 	DATA_INPUT_MODE(); /* Set data pins to input mode */
 
 	/* Read data sent from master */
-    DataSentFromMaster[0] = HAL_GPIO_ReadPin(GPIOB, Data0_Pin);
-    DataSentFromMaster[1] = HAL_GPIO_ReadPin(GPIOB, Data1_Pin);
-    DataSentFromMaster[2] = HAL_GPIO_ReadPin(GPIOB, Data2_Pin);
-    DataSentFromMaster[3] = HAL_GPIO_ReadPin(GPIOB, Data3_Pin);
+    DataSentFromMaster[0] = HAL_GPIO_ReadPin(GPIOB, Data3_Pin);
+    DataSentFromMaster[1] = HAL_GPIO_ReadPin(GPIOB, Data2_Pin);
+    DataSentFromMaster[2] = HAL_GPIO_ReadPin(GPIOB, Data1_Pin);
+    DataSentFromMaster[3] = HAL_GPIO_ReadPin(GPIOB, Data0_Pin);
 
 
     VectorData[AddrRead] = ((DataSentFromMaster[0] << 3) | (DataSentFromMaster[1] << 2) | (DataSentFromMaster[2] << 1) | (DataSentFromMaster[3] << 0));
