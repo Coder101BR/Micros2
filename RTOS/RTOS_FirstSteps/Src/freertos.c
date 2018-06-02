@@ -50,6 +50,10 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "cmsis_os.h"
+#include "main.h"
+#include "stm32f0xx_hal.h"
+#include "usart.h"
+#include "gpio.h"
 
 /* USER CODE BEGIN Includes */     
 
@@ -128,8 +132,12 @@ void StartTask1(void const * argument)
   {
 	osMutexWait(myMutex01Handle, 1000);
 	printf("Task1\r\n");
+	HAL_GPIO_WritePin(GPIOC, LD4_Pin , GPIO_PIN_RESET);
+	//HAL_Delay(500);
+	osDelay(1000);
+	HAL_GPIO_WritePin(GPIOC, LD4_Pin , GPIO_PIN_SET);
 	osMutexRelease(myMutex01Handle);
-    osDelay(1000);
+    osDelay(5000);
   }
   /* USER CODE END StartTask1 */
 }
@@ -143,6 +151,8 @@ void StartTask2(void const * argument)
   {
 	osMutexWait(myMutex01Handle, 1000);
 	printf("Task2\r\n");
+	//HAL_GPIO_WritePin(GPIOC, LD4_Pin , GPIO_PIN_SET);
+	//HAL_Delay(500);
 	osMutexRelease(myMutex01Handle);
 	osDelay(500);
   }
