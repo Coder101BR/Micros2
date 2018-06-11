@@ -55,6 +55,7 @@
 #include "spi.h"
 #include "usart.h"
 #include "gpio.h"
+#include "UserProgram.h"
 
 /* USER CODE BEGIN Includes */     
 
@@ -176,6 +177,7 @@ void StartInputRead(void const * argument)
   {
 	  osMutexWait(InputMutexHandle, 1000);
 
+	  /* Debounce of Digital Inputs */
 	  for(i = 0; i <= 40; i++)
 	  {
 		  PreviousReading = CurrectReading;
@@ -196,6 +198,13 @@ void StartInputRead(void const * argument)
 				  Digital_Input = CurrectReading;
 				  break;
 			  }
+
+			  else
+			  {
+				  count_temp = 0;
+			  }
+
+
 		  }
 		  osDelay(10);
 	  }
@@ -215,7 +224,15 @@ void StartRunUserProgram(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	osMutexWait(InputMutexHandle, 1000);
+	osMutexWait(OutputMutexHandle, 1000);
+
+	CallUserProgram(Analog_Input, Digital_Input, &Digital_Output);
+
+	osMutexRelease(OutputMutexHandle);
+	osMutexRelease(InputMutexHandle);
+
+	osDelay(10);
   }
   /* USER CODE END StartRunUserProgram */
 }

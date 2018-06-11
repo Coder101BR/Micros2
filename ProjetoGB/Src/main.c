@@ -53,6 +53,7 @@
 #include "spi.h"
 #include "usart.h"
 #include "gpio.h"
+#include "UserProgram.h"
 
 /* USER CODE BEGIN Includes */
 
