@@ -9,9 +9,17 @@
 /* Includes ------------------------------------------------------------------*/
 #include "UserProgram.h"
 
+int ScanTimeLimit()
+{
+	int TimeLimit = 5;
+
+
+	return TimeLimit;
+}
+
 void CallUserProgram(int Digital_Input, int Digital_Analog, int *Output)
 {
 
-
+	/* User program space */
 
 }

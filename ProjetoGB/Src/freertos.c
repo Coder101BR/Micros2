@@ -73,10 +73,10 @@ osMutexId ScanMutexHandle;
 osMutexId PrintMutexHandle;
 
 /* USER CODE BEGIN Variables */
-int Digital_Input;
-int Analog_Input;
+int Digital_Input = 0xF; // Pullup
+int Analog_Input; // Init state ?
 int SPI_Control;
-int Digital_Output;
+int Digital_Output = 0;
 int Scan_time_flag;
 int Task_Time;
 /* USER CODE END Variables */
@@ -241,9 +241,38 @@ void StartRunUserProgram(void const * argument)
 void StartOutputUpdate(void const * argument)
 {
   /* USER CODE BEGIN StartOutputUpdate */
+    int WriteData[4];
+    int Mask = 1;
+    int i;
   /* Infinite loop */
   for(;;)
   {
+	  osMutexWait(OutputMutexHandle, 1000);
+	 // Digital_Output
+
+      for(i =0; i < 4; i++)
+      {
+          WriteData[i] = (Digital_Output & Mask);
+
+          if(WriteData[i] > 0)
+          {
+              WriteData[i] = GPIO_PIN_SET;
+          }
+          else
+          {
+              WriteData[i] = GPIO_PIN_RESET;
+          }
+
+          //printf("\nWriteData[%d] = %d", i,WriteData[i]); // Substituir para escrever nos GPIO
+          Mask = Mask << 1;
+      }
+
+	  HAL_GPIO_WritePin(GPIOA, Digital_Output_3_Pin, WriteData[3]);
+	  HAL_GPIO_WritePin(GPIOB, Digital_Output_2_Pin, WriteData[2]);
+	  HAL_GPIO_WritePin(GPIOB, Digital_Output_1_Pin, WriteData[1]);
+	  HAL_GPIO_WritePin(GPIOB, Digital_Output_0_Pin, WriteData[0]);
+
+	  osMutexRelease(OutputMutexHandle);
     osDelay(1);
   }
   /* USER CODE END StartOutputUpdate */

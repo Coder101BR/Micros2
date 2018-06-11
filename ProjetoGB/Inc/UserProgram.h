@@ -18,3 +18,4 @@
 #include "main.h"
 
 void CallUserProgram(int Digital_Input, int Digital_Analog, int *Output);
+int ScanTimeLimit();
