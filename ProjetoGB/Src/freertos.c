@@ -248,7 +248,7 @@ void StartOutputUpdate(void const * argument)
   for(;;)
   {
 	  osMutexWait(OutputMutexHandle, 1000);
-	 // Digital_Output
+
 
       for(i =0; i < 4; i++)
       {
@@ -263,7 +263,7 @@ void StartOutputUpdate(void const * argument)
               WriteData[i] = GPIO_PIN_RESET;
           }
 
-          //printf("\nWriteData[%d] = %d", i,WriteData[i]); // Substituir para escrever nos GPIO
+
           Mask = Mask << 1;
       }
 
