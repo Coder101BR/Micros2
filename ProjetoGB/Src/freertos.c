@@ -165,22 +165,45 @@ void MX_FREERTOS_Init(void) {
 void StartInputRead(void const * argument)
 {
 	int InputArray[4];
+	int CurrectReading = 0;
+	int PreviousReading = 0;
+	int i;
+	int count_temp = 0;
 
   /* USER CODE BEGIN StartInputRead */
   /* Infinite loop */
   for(;;)
   {
 	  osMutexWait(InputMutexHandle, 1000);
-      InputArray[0] = HAL_GPIO_ReadPin(GPIOA, Digital_Input_3_Pin);
-      InputArray[1] = HAL_GPIO_ReadPin(GPIOA, Digital_Input_2_Pin);
-      InputArray[2] = HAL_GPIO_ReadPin(Digital_Input_1_GPIO_Port, Digital_Input_1_Pin);
-      InputArray[3] = HAL_GPIO_ReadPin(Digital_Input_0_GPIO_Port, Digital_Input_0_Pin);
 
-      Digital_Input = ((InputArray[0] << 3) | (InputArray[1] << 2) | (InputArray[2] << 1) | (InputArray[3] << 0));
+	  for(i = 0; i <= 40; i++)
+	  {
+		  PreviousReading = CurrectReading;
+
+		  InputArray[0] = HAL_GPIO_ReadPin(GPIOA, Digital_Input_3_Pin);
+		  InputArray[1] = HAL_GPIO_ReadPin(GPIOA, Digital_Input_2_Pin);
+		  InputArray[2] = HAL_GPIO_ReadPin(Digital_Input_1_GPIO_Port, Digital_Input_1_Pin);
+		  InputArray[3] = HAL_GPIO_ReadPin(Digital_Input_0_GPIO_Port, Digital_Input_0_Pin);
+
+		  CurrectReading = ((InputArray[0] << 3) | (InputArray[1] << 2) | (InputArray[2] << 1) | (InputArray[3] << 0));
+
+		  if(PreviousReading == CurrectReading)
+		  {
+			  count_temp++;
+			  if(count_temp >= 5)
+			  {
+
+				  Digital_Input = CurrectReading;
+				  break;
+			  }
+		  }
+		  osDelay(10);
+	  }
 
       osMutexRelease(InputMutexHandle);
 
-    osDelay(10);
+      count_temp = 0;
+	  osDelay(10);
   }
   /* USER CODE END StartInputRead */
 }
