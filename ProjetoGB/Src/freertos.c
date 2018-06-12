@@ -285,6 +285,19 @@ void StartDisplayUpdate(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+	  /*
+	  int Output = 0xff;
+	  char bufferString[20];
+	  sprintf(bufferString,"DI: %d",Output);
+
+	  LCD_Write_String(0,0,bufferString);
+	  LCD_Write_String(0,1,"223456789ABCD");
+	  LCD_Write_String(0,2,"323456789ABCD");
+	  LCD_Write_String(0,3,"423456789ABCD");
+	  LCD_Write_String(0,4,"523456789ABCD");
+	  LCD_Write_String(0,5,"623456789ABCD");
+	  */
+
     osDelay(1);
   }
   /* USER CODE END StartDisplayUpdate */
