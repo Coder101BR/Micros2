@@ -57,6 +57,7 @@
 #include "gpio.h"
 #include "UserProgram.h"
 #include "Utils.h"
+#include "user_5110.h"
 
 /* USER CODE BEGIN Includes */     
 
@@ -72,6 +73,7 @@ osMutexId InputMutexHandle;
 osMutexId OutputMutexHandle;
 osMutexId ScanMutexHandle;
 osMutexId PrintMutexHandle;
+osMutexId SPIMutexHandle;
 
 /* USER CODE BEGIN Variables */
 int Digital_Input = 0xF; // Pullup
@@ -120,6 +122,11 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of PrintMutex */
   osMutexDef(PrintMutex);
   PrintMutexHandle = osMutexCreate(osMutex(PrintMutex));
+
+  /* definition and creation of SPIMutex */
+  osMutexDef(SPIMutex);
+  SPIMutexHandle = osMutexCreate(osMutex(SPIMutex));
+
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
@@ -171,11 +178,29 @@ void StartInputRead(void const * argument)
 	int PreviousReading = 0;
 	int i;
 	int count_temp = 0;
+	int init;
 
   /* USER CODE BEGIN StartInputRead */
   /* Infinite loop */
   for(;;)
   {
+
+	  /* SPI MUTEX - Analog read */
+	  osMutexWait(SPIMutexHandle, 1000);
+
+	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, 0);
+	  init = 0xE; // Para o canal 1;
+	  HAL_SPI_Transmit(&hspi1, &init, 1, 1000);
+
+	  /* Realizar a leitura do valor da conversão ADC do canal Selecionado */
+	  HAL_SPI_Receive(&hspi1, &init, 1, 1000);
+
+	  /* Desabilita !CS */
+	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, 1);
+
+	  osMutexRelease(SPIMutexHandle);
+
+
 	  osMutexWait(InputMutexHandle, 1000);
 
 	  /* Debounce of Digital Inputs */
@@ -209,6 +234,9 @@ void StartInputRead(void const * argument)
 		  }
 		  osDelay(10);
 	  }
+
+	  /* Copy value from ADC to Analog_Input*/
+	  Analog_Input = init;
 
       osMutexRelease(InputMutexHandle);
 
@@ -250,7 +278,6 @@ void StartOutputUpdate(void const * argument)
   {
 	  osMutexWait(OutputMutexHandle, 1000);
 
-
       for(i =0; i < 4; i++)
       {
           WriteData[i] = (Digital_Output & Mask);
@@ -274,7 +301,7 @@ void StartOutputUpdate(void const * argument)
 	  HAL_GPIO_WritePin(GPIOB, Digital_Output_0_Pin, WriteData[0]);
 
 	  osMutexRelease(OutputMutexHandle);
-    osDelay(1);
+    osDelay(10);
   }
   /* USER CODE END StartOutputUpdate */
 }
@@ -283,23 +310,31 @@ void StartOutputUpdate(void const * argument)
 void StartDisplayUpdate(void const * argument)
 {
   /* USER CODE BEGIN StartDisplayUpdate */
+  uint8_t StrBuffer[20];
+  uint8_t StrBin[20];
   /* Infinite loop */
   for(;;)
   {
-	  /*
-	  int Output = 0xff;
-	  char bufferString[20];
-	  sprintf(bufferString,"DI: %d",Output);
+	  /* SPI MUTEX - Display */
+	 osMutexWait(SPIMutexHandle, 1000);
 
-	  LCD_Write_String(0,0,bufferString);
-	  LCD_Write_String(0,1,"223456789ABCD");
-	  LCD_Write_String(0,2,"323456789ABCD");
-	  LCD_Write_String(0,3,"423456789ABCD");
-	  LCD_Write_String(0,4,"523456789ABCD");
-	  LCD_Write_String(0,5,"623456789ABCD");
-	  */
+	 /* Converte Digital_Input para string em formato binário */
+	 DecimalToBin4bits(Digital_Input, StrBin);
+	 sprintf (StrBuffer, "DI: %sbin", StrBin);
+	 LCD_Write_String(0,0,StrBuffer);
 
-    osDelay(1);
+	 /* Converte Digital_Output para string em formato binário */
+	 DecimalToBin4bits(Digital_Output, StrBin);
+	 sprintf (StrBuffer, "DO: %sbin", StrBin);
+	 LCD_Write_String(0,1,StrBuffer);
+
+	 /* Converte o valor analógico lido para string em formato decimal*/
+	 sprintf (StrBuffer, "Analog: %ddec", Analog_Input);
+	 LCD_Write_String(0,2,StrBuffer);
+
+	 osMutexRelease(SPIMutexHandle);
+
+    osDelay(10);
   }
   /* USER CODE END StartDisplayUpdate */
 }

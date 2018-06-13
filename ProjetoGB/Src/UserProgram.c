@@ -19,7 +19,7 @@ int ScanTimeLimit()
 }
 
 /* User program space */
-void CallUserProgram(int Digital_Input, int Digital_Analog, int *Output)
+void CallUserProgram(int Digital_Analog, int Digital_Input, int *Output)
 {
 
 	/* Check input 0 */
@@ -28,10 +28,20 @@ void CallUserProgram(int Digital_Input, int Digital_Analog, int *Output)
 		*Output = 1;
 	}
 
-	/* Check all inputs */
+	/* Check all digital inputs */
 	if(Digital_Input == 0)
 	{
 		*Output = *Output | 12;
+	}
+
+	/* Check analog input */
+	if(Digital_Analog == 255)
+	{
+		*Output = *Output | 2;
+	}
+	else if (Digital_Analog <= 128)
+	{
+		*Output = *Output = 0;
 	}
 
 }

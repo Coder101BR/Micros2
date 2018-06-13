@@ -55,6 +55,7 @@
 #include "gpio.h"
 #include "UserProgram.h"
 #include "Utils.h"
+#include "user_5110.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -111,6 +112,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_SPI1_Init();
+  LCD_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */

@@ -17,5 +17,5 @@
 #include "stm32f3xx_hal.h"
 #include "main.h"
 
-void CallUserProgram(int Digital_Input, int Digital_Analog, int *Output);
+void CallUserProgram(int Digital_Analog, int Digital_Input, int *Output);
 int ScanTimeLimit();
