@@ -54,6 +54,7 @@
 #include "usart.h"
 #include "gpio.h"
 #include "UserProgram.h"
+#include "Utils.h"
 
 /* USER CODE BEGIN Includes */
 

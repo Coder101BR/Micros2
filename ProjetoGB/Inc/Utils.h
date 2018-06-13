@@ -1,7 +1,7 @@
 /*
  * Utils.h
  *
- *  Created on: 12 de jun de 2018
+ *  Created on: 13 de jun de 2018
  *      Author: Gabriel
  */
 
@@ -12,11 +12,10 @@
 
 #endif /* UTILS_H_ */
 
-
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f3xx_hal.h"
 #include "main.h"
 
 int _io_putchar(int ch);
 int _write(int file, char *ptr, int len);
-void DecimalToBin4bits(int NumbertoConvert, char StrBinary)
+void DecimalToBin4bits(int NumbertoConvert, char *StrBinary);
