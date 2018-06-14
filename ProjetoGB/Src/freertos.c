@@ -403,7 +403,16 @@ void StartHouseKeeping(void const * argument)
 	TickType_t Time_Result;
 	TickType_t ScanTime = 0;
 	Task_Time[4] = 0;
+	TickType_t Task_Time_Previous[NUMBER_OF_TASKS];
 	int i;
+
+	/* Initial state of Task_Time_Anterior vector*/
+	for(i = 0; i < NUMBER_OF_TASKS; i++)
+	{
+		Task_Time_Previous[i] = 0;
+	}
+
+
   /* Infinite loop */
   for(;;)
   {
@@ -420,17 +429,28 @@ void StartHouseKeeping(void const * argument)
 	/* Save task Time_Result at Task_Time vector*/
 	osMutexWait(ScanMutexHandle, 1000);
 
-
+	/* Sum all tasks time until this moment*/
+	/* Note: ScanTime will be reseted only when all tasks had been executed at least one time
+	 * So, if a tasks appears two times the ScanTime will count its time twice.
+	 * */
 	for(i = 0; i < NUMBER_OF_TASKS; i++)
 	{
-		ScanTime = ScanTime + Task_Time[i];
+		/* This if ensure that only new values are stored in ScanTime variable */
+		if(Task_Time[i] > Task_Time_Previous[i])
+		{
+			ScanTime = ScanTime + Task_Time[i];
+		}
+		Task_Time_Previous[i] = Task_Time[i];
+
 	}
 
+	/* Compare ScanTime to user ScanTimeLimit*/
 	if(ScanTime > ScanTimeLimit())
 	{
 		/* Raise ERROR */
 	}
 
+	/* Reset Task_Time vector and ScanTime after all of them been collected (executed at least one time) */
 	if((Task_Time[0] > 0) && (Task_Time[1] > 0) && (Task_Time[2] > 0) && (Task_Time[3] > 0) && (Task_Time[4] > 0))
 	{
 		ScanTime = 0;
