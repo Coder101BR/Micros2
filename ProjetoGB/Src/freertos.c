@@ -76,12 +76,14 @@ osMutexId PrintMutexHandle;
 osMutexId SPIMutexHandle;
 
 /* USER CODE BEGIN Variables */
+#define NUMBER_OF_TASKS 5
+
 int Digital_Input = 0xF; // Pullup
 int Analog_Input; // Init state ?
 int SPI_Control;
 int Digital_Output = 0;
-int Scan_time_flag;
-int Task_Time;
+// int Scan_time_flag;
+int Task_Time[NUMBER_OF_TASKS];
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
@@ -182,6 +184,7 @@ void StartInputRead(void const * argument)
 
     TickType_t Initial_Time = 0;
     TickType_t Time_Result;
+    Task_Time[0] = 0;
 
   /* USER CODE BEGIN StartInputRead */
   /* Infinite loop */
@@ -236,7 +239,7 @@ void StartInputRead(void const * argument)
 
 
 		  }
-		  osDelay(10);
+		 // osDelay(10);
 	  }
 
 	  /* Copy value from ADC to Analog_Input*/
@@ -246,6 +249,12 @@ void StartInputRead(void const * argument)
 
       count_temp = 0;
       Time_Result =  osKernelSysTick() - Initial_Time;
+
+      /* Save task Time_Result at Task_Time vector*/
+      osMutexWait(ScanMutexHandle, 1000);
+      Task_Time[0] = Task_Time[0] + Time_Result;
+	  osMutexRelease(ScanMutexHandle);
+
 	  osDelay(10);
   }
   /* USER CODE END StartInputRead */
@@ -257,6 +266,7 @@ void StartRunUserProgram(void const * argument)
   /* USER CODE BEGIN StartRunUserProgram */
 	TickType_t Initial_Time = 0;
 	TickType_t Time_Result;
+	Task_Time[1] = 0;
   /* Infinite loop */
   for(;;)
   {
@@ -271,6 +281,12 @@ void StartRunUserProgram(void const * argument)
 	osMutexRelease(InputMutexHandle);
 
 	Time_Result =  osKernelSysTick() - Initial_Time;
+
+    /* Save task Time_Result at Task_Time vector*/
+    osMutexWait(ScanMutexHandle, 1000);
+    Task_Time[1] = Task_Time[1] + Time_Result;
+	osMutexRelease(ScanMutexHandle);
+
 	osDelay(10);
   }
   /* USER CODE END StartRunUserProgram */
@@ -287,6 +303,7 @@ void StartOutputUpdate(void const * argument)
     TickType_t Final_Time = 0;
     TickType_t Initial_Time = 0;
     TickType_t Time_Result;
+    Task_Time[2] = 0;
   /* Infinite loop */
   for(;;)
   {
@@ -319,6 +336,12 @@ void StartOutputUpdate(void const * argument)
 	  osMutexRelease(OutputMutexHandle);
 
 	  Time_Result =  osKernelSysTick() - Initial_Time;
+
+	/* Save task Time_Result at Task_Time vector*/
+	osMutexWait(ScanMutexHandle, 1000);
+	Task_Time[2] = Task_Time[2] + Time_Result;
+	osMutexRelease(ScanMutexHandle);
+
     osDelay(10);
   }
   /* USER CODE END StartOutputUpdate */
@@ -334,6 +357,7 @@ void StartDisplayUpdate(void const * argument)
   TickType_t Final_Time = 0;
   TickType_t Initial_Time = 0;
   TickType_t Time_Result;
+  Task_Time[3] = 0;
   /* Infinite loop */
   for(;;)
   {
@@ -359,6 +383,12 @@ void StartDisplayUpdate(void const * argument)
 	 osMutexRelease(SPIMutexHandle);
 
 	 Time_Result =  osKernelSysTick() - Initial_Time;
+
+	/* Save task Time_Result at Task_Time vector*/
+	osMutexWait(ScanMutexHandle, 1000);
+	Task_Time[3] = Task_Time[3] + Time_Result;
+	osMutexRelease(ScanMutexHandle);
+
     osDelay(10);
   }
   /* USER CODE END StartDisplayUpdate */
@@ -371,6 +401,9 @@ void StartHouseKeeping(void const * argument)
 	TickType_t Final_Time = 0;
 	TickType_t Initial_Time = 0;
 	TickType_t Time_Result;
+	TickType_t ScanTime = 0;
+	Task_Time[4] = 0;
+	int i;
   /* Infinite loop */
   for(;;)
   {
@@ -382,7 +415,41 @@ void StartHouseKeeping(void const * argument)
 
 	}
 	*/
+
+
+	/* Save task Time_Result at Task_Time vector*/
+	osMutexWait(ScanMutexHandle, 1000);
+
+
+	for(i = 0; i < NUMBER_OF_TASKS; i++)
+	{
+		ScanTime = ScanTime + Task_Time[i];
+	}
+
+	if(ScanTime > ScanTimeLimit())
+	{
+		/* Raise ERROR */
+	}
+
+	if((Task_Time[0] > 0) && (Task_Time[1] > 0) && (Task_Time[2] > 0) && (Task_Time[3] > 0) && (Task_Time[4] > 0))
+	{
+		ScanTime = 0;
+		for(i = 0; i < NUMBER_OF_TASKS; i++)
+		{
+			Task_Time[i] = 0;
+		}
+	}
+
+	osMutexRelease(ScanMutexHandle);
+
+
 	Time_Result =  osKernelSysTick() - Initial_Time;
+
+	/* Save task Time_Result at Task_Time vector*/
+	osMutexWait(ScanMutexHandle, 1000);
+	Task_Time[4] = Task_Time[4] + Time_Result;
+	osMutexRelease(ScanMutexHandle);
+
 	osDelay(1);
   }
   /* USER CODE END StartHouseKeeping */
