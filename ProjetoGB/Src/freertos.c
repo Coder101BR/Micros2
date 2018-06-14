@@ -180,10 +180,14 @@ void StartInputRead(void const * argument)
 	int count_temp = 0;
 	int init;
 
+    TickType_t Initial_Time = 0;
+    TickType_t Time_Result;
+
   /* USER CODE BEGIN StartInputRead */
   /* Infinite loop */
   for(;;)
   {
+	  Initial_Time = osKernelSysTick();
 
 	  /* SPI MUTEX - Analog read */
 	  osMutexWait(SPIMutexHandle, 1000);
@@ -241,6 +245,7 @@ void StartInputRead(void const * argument)
       osMutexRelease(InputMutexHandle);
 
       count_temp = 0;
+      Time_Result =  osKernelSysTick() - Initial_Time;
 	  osDelay(10);
   }
   /* USER CODE END StartInputRead */
@@ -250,9 +255,13 @@ void StartInputRead(void const * argument)
 void StartRunUserProgram(void const * argument)
 {
   /* USER CODE BEGIN StartRunUserProgram */
+	TickType_t Initial_Time = 0;
+	TickType_t Time_Result;
   /* Infinite loop */
   for(;;)
   {
+	Initial_Time = osKernelSysTick();
+
 	osMutexWait(InputMutexHandle, 1000);
 	osMutexWait(OutputMutexHandle, 1000);
 
@@ -261,6 +270,7 @@ void StartRunUserProgram(void const * argument)
 	osMutexRelease(OutputMutexHandle);
 	osMutexRelease(InputMutexHandle);
 
+	Time_Result =  osKernelSysTick() - Initial_Time;
 	osDelay(10);
   }
   /* USER CODE END StartRunUserProgram */
@@ -273,9 +283,15 @@ void StartOutputUpdate(void const * argument)
     int WriteData[4];
     int Mask = 1;
     int i;
+
+    TickType_t Final_Time = 0;
+    TickType_t Initial_Time = 0;
+    TickType_t Time_Result;
   /* Infinite loop */
   for(;;)
   {
+	  Initial_Time = osKernelSysTick();
+
 	  osMutexWait(OutputMutexHandle, 1000);
 
       for(i =0; i < 4; i++)
@@ -301,6 +317,8 @@ void StartOutputUpdate(void const * argument)
 	  HAL_GPIO_WritePin(GPIOB, Digital_Output_0_Pin, WriteData[0]);
 
 	  osMutexRelease(OutputMutexHandle);
+
+	  Time_Result =  osKernelSysTick() - Initial_Time;
     osDelay(10);
   }
   /* USER CODE END StartOutputUpdate */
@@ -312,9 +330,15 @@ void StartDisplayUpdate(void const * argument)
   /* USER CODE BEGIN StartDisplayUpdate */
   uint8_t StrBuffer[20];
   uint8_t StrBin[20];
+
+  TickType_t Final_Time = 0;
+  TickType_t Initial_Time = 0;
+  TickType_t Time_Result;
   /* Infinite loop */
   for(;;)
   {
+	  Initial_Time = osKernelSysTick();
+
 	  /* SPI MUTEX - Display */
 	 osMutexWait(SPIMutexHandle, 1000);
 
@@ -334,6 +358,7 @@ void StartDisplayUpdate(void const * argument)
 
 	 osMutexRelease(SPIMutexHandle);
 
+	 Time_Result =  osKernelSysTick() - Initial_Time;
     osDelay(10);
   }
   /* USER CODE END StartDisplayUpdate */
@@ -343,10 +368,22 @@ void StartDisplayUpdate(void const * argument)
 void StartHouseKeeping(void const * argument)
 {
   /* USER CODE BEGIN StartHouseKeeping */
+	TickType_t Final_Time = 0;
+	TickType_t Initial_Time = 0;
+	TickType_t Time_Result;
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+  Initial_Time = osKernelSysTick();
+
+  /*
+	if(ScanTime > ScanTimeLimit())
+	{
+
+	}
+	*/
+	Time_Result =  osKernelSysTick() - Initial_Time;
+	osDelay(1);
   }
   /* USER CODE END StartHouseKeeping */
 }
