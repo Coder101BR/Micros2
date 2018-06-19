@@ -278,9 +278,9 @@ void StartRunUserProgram(void const * argument)
 
 	CallUserProgram(Analog_Input, Digital_Input, &Digital_Output);
 
-	osMutexWait(PrintMutexHandle, 1000);
-	printf("INPUT: %d\r\n", Digital_Input);
-	osMutexRelease(PrintMutexHandle);
+	// osMutexWait(PrintMutexHandle, 1000);
+	// printf("INPUT: %d\r\n", Digital_Input);
+	// osMutexRelease(PrintMutexHandle);
 
 	osMutexRelease(OutputMutexHandle);
 	osMutexRelease(InputMutexHandle);
@@ -293,7 +293,7 @@ void StartRunUserProgram(void const * argument)
 	osMutexRelease(ScanMutexHandle);
 
 
-	osDelay(1000);
+	osDelay(10);
   }
   /* USER CODE END StartRunUserProgram */
 }
@@ -313,42 +313,53 @@ void StartOutputUpdate(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	  // Initial_Time = osKernelSysTick();
+	  Initial_Time = osKernelSysTick();
 
-	  // osMutexWait(OutputMutexHandle, 1000);
+	  osMutexWait(OutputMutexHandle, 1000);
 
-      // for(i =0; i < 4; i++)
-      // {
-          // WriteData[i] = (Digital_Output & Mask);
+      for(i =0; i < 4; i++)
+      {
+          WriteData[i] = (Digital_Output & Mask);
 
-          // if(WriteData[i] > 0)
-          // {
-              // WriteData[i] = GPIO_PIN_SET;
-          // }
-          // else
-          // {
-              // WriteData[i] = GPIO_PIN_RESET;
-          // }
+          if(WriteData[i] > 0)
+          {
+              WriteData[i] = GPIO_PIN_SET;
+          }
+          else
+          {
+              WriteData[i] = GPIO_PIN_RESET;
+          }
 
 
-          // Mask = Mask << 1;
-      // }
+          Mask = Mask << 1;
+      }
+      Mask = 1;
 
-	  // HAL_GPIO_WritePin(GPIOA, Digital_Output_3_Pin, WriteData[3]);
-	  // HAL_GPIO_WritePin(GPIOB, Digital_Output_2_Pin, WriteData[2]);
-	  // HAL_GPIO_WritePin(GPIOB, Digital_Output_1_Pin, WriteData[1]);
-	  // HAL_GPIO_WritePin(GPIOB, Digital_Output_0_Pin, WriteData[0]);
+	  	 osMutexWait(PrintMutexHandle, 1000);
+		 printf("OUTPUT: %d\r\n", Digital_Output);
+		 osMutexRelease(PrintMutexHandle);
+	  
+	  
+	  HAL_GPIO_WritePin(GPIOA, Digital_Output_3_Pin, WriteData[3]);
+	  HAL_GPIO_WritePin(GPIOB, Digital_Output_2_Pin, WriteData[2]);
+	  HAL_GPIO_WritePin(GPIOB, Digital_Output_1_Pin, WriteData[1]);
+	  HAL_GPIO_WritePin(GPIOB, Digital_Output_0_Pin, WriteData[0]);
 
-	  // osMutexRelease(OutputMutexHandle);
+	  	 osMutexWait(PrintMutexHandle, 1000);
+		 printf("WriteData(bin): %d %d %d %d\r\n", WriteData[3], WriteData[2], WriteData[1], WriteData[0]);
+		 osMutexRelease(PrintMutexHandle);
 
-	  // Time_Result =  osKernelSysTick() - Initial_Time;
+	  osMutexRelease(OutputMutexHandle);
 
-	// /* Save task Time_Result at Task_Time vector*/
-	// osMutexWait(ScanMutexHandle, 1000);
-	// Task_Time[2] = Task_Time[2] + Time_Result;
-	// osMutexRelease(ScanMutexHandle);
+	  Time_Result =  osKernelSysTick() - Initial_Time;
 
-    osDelay(10);
+	/* Save task Time_Result at Task_Time vector*/
+	osMutexWait(ScanMutexHandle, 1000);
+	Task_Time[2] = Task_Time[2] + Time_Result;
+	osMutexRelease(ScanMutexHandle);
+
+	osDelay(1000);
+    // osDelay(10);
   }
   /* USER CODE END StartOutputUpdate */
 }

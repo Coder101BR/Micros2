@@ -22,6 +22,8 @@ int ScanTimeLimit()
 void CallUserProgram(int Digital_Analog, int Digital_Input, int *Output)
 {
 
+	*Output = *Output | 14;
+
 	/* Check input 0 */
 	if((Digital_Input & 1) == 0)
 	{
