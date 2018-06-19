@@ -370,50 +370,50 @@ void StartOutputUpdate(void const * argument)
 /* StartDisplayUpdate function */
 void StartDisplayUpdate(void const * argument)
 {
-  // /* USER CODE BEGIN StartDisplayUpdate */
-  // uint8_t StrBuffer[20];
-  // uint8_t StrBin[20];
+  /* USER CODE BEGIN StartDisplayUpdate */
+  uint8_t StrBuffer[20];
+  uint8_t StrBin[20];
 
-  // TickType_t Final_Time = 0;
-  // TickType_t Initial_Time = 0;
-  // TickType_t Time_Result;
-  // Task_Time[3] = 0;
+  TickType_t Final_Time = 0;
+  TickType_t Initial_Time = 0;
+  TickType_t Time_Result;
+  Task_Time[3] = 0;
   // /* Infinite loop */
    for(;;)
    {
-	  // Initial_Time = osKernelSysTick();
+	  Initial_Time = osKernelSysTick();
 
-	  // /* SPI MUTEX - Display */
-	 // osMutexWait(SPIMutexHandle, 1000);
+	  /* SPI MUTEX - Display */
+	 osMutexWait(SPIMutexHandle, 1000);
 
-	 // /* Converte Digital_Input para string em formato binário */
-	 // DecimalToBin4bits(Digital_Input, StrBin);
-	 // sprintf (StrBuffer, "DI: %sbin", StrBin);
-	 // LCD_Write_String(0,0,StrBuffer);
+	 /* Converte Digital_Input para string em formato binário */
+	 DecimalToBin4bits(Digital_Input, StrBin);
+	 sprintf (StrBuffer, "DI: %sbin", StrBin);
+	 LCD_Write_String(0,0,StrBuffer);
 
-	 // /*
-		// osMutexWait(PrintMutexHandle, 1000);
-		// printf("INPUT: %d\r\n", Digital_Input);
-		// osMutexRelease(PrintMutexHandle);
-	// */
+	 /*
+		osMutexWait(PrintMutexHandle, 1000);
+		printf("INPUT: %d\r\n", Digital_Input);
+		osMutexRelease(PrintMutexHandle);
+	*/
 
-	 // /* Converte Digital_Output para string em formato binário */
-	 // DecimalToBin4bits(Digital_Output, StrBin);
-	 // sprintf (StrBuffer, "DO: %sbin", StrBin);
-	 // LCD_Write_String(0,1,StrBuffer);
+	 /* Converte Digital_Output para string em formato binário */
+	 DecimalToBin4bits(Digital_Output, StrBin);
+	 sprintf (StrBuffer, "DO: %sbin", StrBin);
+	 LCD_Write_String(0,1,StrBuffer);
 
-	 // /* Converte o valor analógico lido para string em formato decimal*/
-	 // sprintf (StrBuffer, "Analog: %ddec", Analog_Input);
-	 // LCD_Write_String(0,2,StrBuffer);
+	 /* Converte o valor analógico lido para string em formato decimal*/
+	 sprintf (StrBuffer, "Analog: %ddec", Analog_Input);
+	 LCD_Write_String(0,2,StrBuffer);
 
-	 // osMutexRelease(SPIMutexHandle);
+	 osMutexRelease(SPIMutexHandle);
 
-	 // Time_Result =  osKernelSysTick() - Initial_Time;
+	 Time_Result =  osKernelSysTick() - Initial_Time;
 
-	// /* Save task Time_Result at Task_Time vector*/
-	// osMutexWait(ScanMutexHandle, 1000);
-	// Task_Time[3] = Task_Time[3] + Time_Result;
-	// osMutexRelease(ScanMutexHandle);
+	/* Save task Time_Result at Task_Time vector*/
+	osMutexWait(ScanMutexHandle, 1000);
+	Task_Time[3] = Task_Time[3] + Time_Result;
+	osMutexRelease(ScanMutexHandle);
 
     osDelay(10);
    // osDelay(1000);
