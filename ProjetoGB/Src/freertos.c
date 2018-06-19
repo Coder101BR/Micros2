@@ -229,16 +229,15 @@ void StartInputRead(void const * argument)
 			  {
 
 				  Digital_Input = CurrectReading;
+				  count_temp = 0;
 				  break;
 			  }
-
-			  else
-			  {
-				  count_temp = 0;
-			  }
-
-
 		  }
+		  else
+		  {
+			  count_temp = 0;
+		  }
+
 		 // osDelay(10);
 	  }
 
@@ -255,7 +254,9 @@ void StartInputRead(void const * argument)
       Task_Time[0] = Task_Time[0] + Time_Result;
 	  osMutexRelease(ScanMutexHandle);
 
+
 	  osDelay(10);
+
   }
   /* USER CODE END StartInputRead */
 }
@@ -277,6 +278,10 @@ void StartRunUserProgram(void const * argument)
 
 	CallUserProgram(Analog_Input, Digital_Input, &Digital_Output);
 
+	osMutexWait(PrintMutexHandle, 1000);
+	printf("INPUT: %d\r\n", Digital_Input);
+	osMutexRelease(PrintMutexHandle);
+
 	osMutexRelease(OutputMutexHandle);
 	osMutexRelease(InputMutexHandle);
 
@@ -287,7 +292,8 @@ void StartRunUserProgram(void const * argument)
     Task_Time[1] = Task_Time[1] + Time_Result;
 	osMutexRelease(ScanMutexHandle);
 
-	osDelay(10);
+
+	osDelay(1000);
   }
   /* USER CODE END StartRunUserProgram */
 }
@@ -307,40 +313,40 @@ void StartOutputUpdate(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	  Initial_Time = osKernelSysTick();
+	  // Initial_Time = osKernelSysTick();
 
-	  osMutexWait(OutputMutexHandle, 1000);
+	  // osMutexWait(OutputMutexHandle, 1000);
 
-      for(i =0; i < 4; i++)
-      {
-          WriteData[i] = (Digital_Output & Mask);
+      // for(i =0; i < 4; i++)
+      // {
+          // WriteData[i] = (Digital_Output & Mask);
 
-          if(WriteData[i] > 0)
-          {
-              WriteData[i] = GPIO_PIN_SET;
-          }
-          else
-          {
-              WriteData[i] = GPIO_PIN_RESET;
-          }
+          // if(WriteData[i] > 0)
+          // {
+              // WriteData[i] = GPIO_PIN_SET;
+          // }
+          // else
+          // {
+              // WriteData[i] = GPIO_PIN_RESET;
+          // }
 
 
-          Mask = Mask << 1;
-      }
+          // Mask = Mask << 1;
+      // }
 
-	  HAL_GPIO_WritePin(GPIOA, Digital_Output_3_Pin, WriteData[3]);
-	  HAL_GPIO_WritePin(GPIOB, Digital_Output_2_Pin, WriteData[2]);
-	  HAL_GPIO_WritePin(GPIOB, Digital_Output_1_Pin, WriteData[1]);
-	  HAL_GPIO_WritePin(GPIOB, Digital_Output_0_Pin, WriteData[0]);
+	  // HAL_GPIO_WritePin(GPIOA, Digital_Output_3_Pin, WriteData[3]);
+	  // HAL_GPIO_WritePin(GPIOB, Digital_Output_2_Pin, WriteData[2]);
+	  // HAL_GPIO_WritePin(GPIOB, Digital_Output_1_Pin, WriteData[1]);
+	  // HAL_GPIO_WritePin(GPIOB, Digital_Output_0_Pin, WriteData[0]);
 
-	  osMutexRelease(OutputMutexHandle);
+	  // osMutexRelease(OutputMutexHandle);
 
-	  Time_Result =  osKernelSysTick() - Initial_Time;
+	  // Time_Result =  osKernelSysTick() - Initial_Time;
 
-	/* Save task Time_Result at Task_Time vector*/
-	osMutexWait(ScanMutexHandle, 1000);
-	Task_Time[2] = Task_Time[2] + Time_Result;
-	osMutexRelease(ScanMutexHandle);
+	// /* Save task Time_Result at Task_Time vector*/
+	// osMutexWait(ScanMutexHandle, 1000);
+	// Task_Time[2] = Task_Time[2] + Time_Result;
+	// osMutexRelease(ScanMutexHandle);
 
     osDelay(10);
   }
@@ -350,46 +356,53 @@ void StartOutputUpdate(void const * argument)
 /* StartDisplayUpdate function */
 void StartDisplayUpdate(void const * argument)
 {
-  /* USER CODE BEGIN StartDisplayUpdate */
-  uint8_t StrBuffer[20];
-  uint8_t StrBin[20];
+  // /* USER CODE BEGIN StartDisplayUpdate */
+  // uint8_t StrBuffer[20];
+  // uint8_t StrBin[20];
 
-  TickType_t Final_Time = 0;
-  TickType_t Initial_Time = 0;
-  TickType_t Time_Result;
-  Task_Time[3] = 0;
-  /* Infinite loop */
-  for(;;)
-  {
-	  Initial_Time = osKernelSysTick();
+  // TickType_t Final_Time = 0;
+  // TickType_t Initial_Time = 0;
+  // TickType_t Time_Result;
+  // Task_Time[3] = 0;
+  // /* Infinite loop */
+   for(;;)
+   {
+	  // Initial_Time = osKernelSysTick();
 
-	  /* SPI MUTEX - Display */
-	 osMutexWait(SPIMutexHandle, 1000);
+	  // /* SPI MUTEX - Display */
+	 // osMutexWait(SPIMutexHandle, 1000);
 
-	 /* Converte Digital_Input para string em formato binário */
-	 DecimalToBin4bits(Digital_Input, StrBin);
-	 sprintf (StrBuffer, "DI: %sbin", StrBin);
-	 LCD_Write_String(0,0,StrBuffer);
+	 // /* Converte Digital_Input para string em formato binário */
+	 // DecimalToBin4bits(Digital_Input, StrBin);
+	 // sprintf (StrBuffer, "DI: %sbin", StrBin);
+	 // LCD_Write_String(0,0,StrBuffer);
 
-	 /* Converte Digital_Output para string em formato binário */
-	 DecimalToBin4bits(Digital_Output, StrBin);
-	 sprintf (StrBuffer, "DO: %sbin", StrBin);
-	 LCD_Write_String(0,1,StrBuffer);
+	 // /*
+		// osMutexWait(PrintMutexHandle, 1000);
+		// printf("INPUT: %d\r\n", Digital_Input);
+		// osMutexRelease(PrintMutexHandle);
+	// */
 
-	 /* Converte o valor analógico lido para string em formato decimal*/
-	 sprintf (StrBuffer, "Analog: %ddec", Analog_Input);
-	 LCD_Write_String(0,2,StrBuffer);
+	 // /* Converte Digital_Output para string em formato binário */
+	 // DecimalToBin4bits(Digital_Output, StrBin);
+	 // sprintf (StrBuffer, "DO: %sbin", StrBin);
+	 // LCD_Write_String(0,1,StrBuffer);
 
-	 osMutexRelease(SPIMutexHandle);
+	 // /* Converte o valor analógico lido para string em formato decimal*/
+	 // sprintf (StrBuffer, "Analog: %ddec", Analog_Input);
+	 // LCD_Write_String(0,2,StrBuffer);
 
-	 Time_Result =  osKernelSysTick() - Initial_Time;
+	 // osMutexRelease(SPIMutexHandle);
 
-	/* Save task Time_Result at Task_Time vector*/
-	osMutexWait(ScanMutexHandle, 1000);
-	Task_Time[3] = Task_Time[3] + Time_Result;
-	osMutexRelease(ScanMutexHandle);
+	 // Time_Result =  osKernelSysTick() - Initial_Time;
+
+	// /* Save task Time_Result at Task_Time vector*/
+	// osMutexWait(ScanMutexHandle, 1000);
+	// Task_Time[3] = Task_Time[3] + Time_Result;
+	// osMutexRelease(ScanMutexHandle);
 
     osDelay(10);
+   // osDelay(1000);
   }
   /* USER CODE END StartDisplayUpdate */
 }
@@ -416,7 +429,7 @@ void StartHouseKeeping(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-  Initial_Time = osKernelSysTick();
+ // Initial_Time = osKernelSysTick();
 
   /*
 	if(ScanTime > ScanTimeLimit())
@@ -427,50 +440,50 @@ void StartHouseKeeping(void const * argument)
 
 
 	/* Save task Time_Result at Task_Time vector*/
-	osMutexWait(ScanMutexHandle, 1000);
+	// osMutexWait(ScanMutexHandle, 1000);
 
-	/* Sum all tasks time until this moment*/
-	/* Note: ScanTime will be reseted only when all tasks had been executed at least one time
-	 * So, if a tasks appears two times the ScanTime will count its time twice.
-	 * */
-	for(i = 0; i < NUMBER_OF_TASKS; i++)
-	{
-		/* This if ensure that only new values are stored in ScanTime variable */
-		if(Task_Time[i] > Task_Time_Previous[i])
-		{
-			ScanTime = ScanTime + Task_Time[i];
-		}
-		Task_Time_Previous[i] = Task_Time[i];
+	// /* Sum all tasks time until this moment*/
+	// /* Note: ScanTime will be reseted only when all tasks had been executed at least one time
+	 // * So, if a tasks appears two times the ScanTime will count its time twice.
+	 // * */
+	// for(i = 0; i < NUMBER_OF_TASKS; i++)
+	// {
+		// /* This if ensure that only new values are stored in ScanTime variable */
+		// if(Task_Time[i] > Task_Time_Previous[i])
+		// {
+			// ScanTime = ScanTime + Task_Time[i];
+		// }
+		// Task_Time_Previous[i] = Task_Time[i];
 
-	}
+	// }
 
-	/* Compare ScanTime to user ScanTimeLimit*/
-	if(ScanTime > ScanTimeLimit())
-	{
-		/* Raise ERROR */
-	}
+	// /* Compare ScanTime to user ScanTimeLimit*/
+	// if(ScanTime > ScanTimeLimit())
+	// {
+		// /* Raise ERROR */
+	// }
 
-	/* Reset Task_Time vector and ScanTime after all of them been collected (executed at least one time) */
-	if((Task_Time[0] > 0) && (Task_Time[1] > 0) && (Task_Time[2] > 0) && (Task_Time[3] > 0) && (Task_Time[4] > 0))
-	{
-		ScanTime = 0;
-		for(i = 0; i < NUMBER_OF_TASKS; i++)
-		{
-			Task_Time[i] = 0;
-		}
-	}
+	// /* Reset Task_Time vector and ScanTime after all of them been collected (executed at least one time) */
+	// if((Task_Time[0] > 0) && (Task_Time[1] > 0) && (Task_Time[2] > 0) && (Task_Time[3] > 0) && (Task_Time[4] > 0))
+	// {
+		// ScanTime = 0;
+		// for(i = 0; i < NUMBER_OF_TASKS; i++)
+		// {
+			// Task_Time[i] = 0;
+		// }
+	// }
 
-	osMutexRelease(ScanMutexHandle);
+	// osMutexRelease(ScanMutexHandle);
 
 
-	Time_Result =  osKernelSysTick() - Initial_Time;
+	// Time_Result =  osKernelSysTick() - Initial_Time;
 
-	/* Save task Time_Result at Task_Time vector*/
-	osMutexWait(ScanMutexHandle, 1000);
-	Task_Time[4] = Task_Time[4] + Time_Result;
-	osMutexRelease(ScanMutexHandle);
+	// /* Save task Time_Result at Task_Time vector*/
+	// osMutexWait(ScanMutexHandle, 1000);
+	// Task_Time[4] = Task_Time[4] + Time_Result;
+	// osMutexRelease(ScanMutexHandle);
 
-	osDelay(1);
+	osDelay(10);
   }
   /* USER CODE END StartHouseKeeping */
 }

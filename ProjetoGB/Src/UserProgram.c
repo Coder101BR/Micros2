@@ -25,23 +25,23 @@ void CallUserProgram(int Digital_Analog, int Digital_Input, int *Output)
 	/* Check input 0 */
 	if((Digital_Input & 1) == 0)
 	{
-		*Output = 1;
+		//*Output = 1;
 	}
 
 	/* Check all digital inputs */
 	if(Digital_Input == 0)
 	{
-		*Output = *Output | 12;
+	//	*Output = *Output | 12;
 	}
 
 	/* Check analog input */
 	if(Digital_Analog == 255)
 	{
-		*Output = *Output | 2;
+	//	*Output = *Output | 2;
 	}
 	else if (Digital_Analog <= 128)
 	{
-		*Output = *Output = 0;
+	//	*Output = *Output = 0;
 	}
 
 }
