@@ -279,7 +279,7 @@ void StartRunUserProgram(void const * argument)
 	CallUserProgram(Analog_Input, Digital_Input, &Digital_Output);
 
 	// osMutexWait(PrintMutexHandle, 1000);
-	// printf("INPUT: %d\r\n", Digital_Input);
+	// printf("Analog: %d\r\n", Analog_Input);
 	// osMutexRelease(PrintMutexHandle);
 
 	osMutexRelease(OutputMutexHandle);
@@ -335,19 +335,22 @@ void StartOutputUpdate(void const * argument)
       }
       Mask = 1;
 
+      /*
 	  	 osMutexWait(PrintMutexHandle, 1000);
 		 printf("OUTPUT: %d\r\n", Digital_Output);
 		 osMutexRelease(PrintMutexHandle);
-	  
+	  */
 	  
 	  HAL_GPIO_WritePin(GPIOA, Digital_Output_3_Pin, WriteData[3]);
 	  HAL_GPIO_WritePin(GPIOB, Digital_Output_2_Pin, WriteData[2]);
 	  HAL_GPIO_WritePin(GPIOB, Digital_Output_1_Pin, WriteData[1]);
 	  HAL_GPIO_WritePin(GPIOB, Digital_Output_0_Pin, WriteData[0]);
 
+	  /*
 	  	 osMutexWait(PrintMutexHandle, 1000);
 		 printf("WriteData(bin): %d %d %d %d\r\n", WriteData[3], WriteData[2], WriteData[1], WriteData[0]);
 		 osMutexRelease(PrintMutexHandle);
+	  */
 
 	  osMutexRelease(OutputMutexHandle);
 
@@ -358,8 +361,8 @@ void StartOutputUpdate(void const * argument)
 	Task_Time[2] = Task_Time[2] + Time_Result;
 	osMutexRelease(ScanMutexHandle);
 
-	osDelay(1000);
-    // osDelay(10);
+
+    osDelay(10);
   }
   /* USER CODE END StartOutputUpdate */
 }
