@@ -83,7 +83,9 @@ int Analog_Input; // Init state ?
 int SPI_Control;
 int Digital_Output = 0;
 // int Scan_time_flag;
-int Task_Time[NUMBER_OF_TASKS];
+// int Task_Time[NUMBER_OF_TASKS];
+TickType_t Task_Time[NUMBER_OF_TASKS];
+TickType_t ScanTime = 0;
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
@@ -388,7 +390,7 @@ void StartDisplayUpdate(void const * argument)
 
 	 /* Converte Digital_Input para string em formato binário */
 	 DecimalToBin4bits(Digital_Input, StrBin);
-	 sprintf (StrBuffer, "DI: %sbin", StrBin);
+	 sprintf (StrBuffer, "DI: %sb", StrBin);
 	 LCD_Write_String(0,0,StrBuffer);
 
 	 /*
@@ -399,12 +401,18 @@ void StartDisplayUpdate(void const * argument)
 
 	 /* Converte Digital_Output para string em formato binário */
 	 DecimalToBin4bits(Digital_Output, StrBin);
-	 sprintf (StrBuffer, "DO: %sbin", StrBin);
+	 sprintf (StrBuffer, "DO: %sb", StrBin);
 	 LCD_Write_String(0,1,StrBuffer);
 
 	 /* Converte o valor analógico lido para string em formato decimal*/
-	 sprintf (StrBuffer, "Analog: %ddec", Analog_Input);
+	 sprintf (StrBuffer, "Analog: %dd", Analog_Input);
 	 LCD_Write_String(0,2,StrBuffer);
+
+	 osMutexWait(ScanMutexHandle, 1000);
+	 /* Imprime o ScanTime no display */
+	 sprintf (StrBuffer, "Scan: %dd", ScanTime);
+	 LCD_Write_String(0,3,StrBuffer);
+	 osMutexRelease(ScanMutexHandle);
 
 	 osMutexRelease(SPIMutexHandle);
 
@@ -428,7 +436,7 @@ void StartHouseKeeping(void const * argument)
 	TickType_t Final_Time = 0;
 	TickType_t Initial_Time = 0;
 	TickType_t Time_Result;
-	TickType_t ScanTime = 0;
+	// TickType_t ScanTime = 0;
 	Task_Time[4] = 0;
 	TickType_t Task_Time_Previous[NUMBER_OF_TASKS];
 	int i;
@@ -443,7 +451,7 @@ void StartHouseKeeping(void const * argument)
   /* Infinite loop */
   for(;;)
   {
- // Initial_Time = osKernelSysTick();
+ Initial_Time = osKernelSysTick();
 
   /*
 	if(ScanTime > ScanTimeLimit())
@@ -454,48 +462,61 @@ void StartHouseKeeping(void const * argument)
 
 
 	/* Save task Time_Result at Task_Time vector*/
-	// osMutexWait(ScanMutexHandle, 1000);
+	osMutexWait(ScanMutexHandle, 1000);
 
-	// /* Sum all tasks time until this moment*/
-	// /* Note: ScanTime will be reseted only when all tasks had been executed at least one time
-	 // * So, if a tasks appears two times the ScanTime will count its time twice.
-	 // * */
-	// for(i = 0; i < NUMBER_OF_TASKS; i++)
-	// {
-		// /* This if ensure that only new values are stored in ScanTime variable */
-		// if(Task_Time[i] > Task_Time_Previous[i])
-		// {
-			// ScanTime = ScanTime + Task_Time[i];
-		// }
-		// Task_Time_Previous[i] = Task_Time[i];
+	/* Sum all tasks time until this moment*/
+	/* Note: ScanTime will be reseted only when all tasks had been executed at least one time
+	 * So, if a tasks appears two times the ScanTime will count its time twice.
+	 * */
+	for(i = 0; i < NUMBER_OF_TASKS; i++)
+	{
+		/* This "if" below ensure that only new values are stored in ScanTime variable */
+		if(Task_Time[i] > Task_Time_Previous[i])
+		{
+			ScanTime = ScanTime + Task_Time[i];
+			// logic to check if all Scans are new
+		}
+		Task_Time_Previous[i] = Task_Time[i];
 
-	// }
+	}
 
-	// /* Compare ScanTime to user ScanTimeLimit*/
-	// if(ScanTime > ScanTimeLimit())
-	// {
-		// /* Raise ERROR */
-	// }
+	/* Compare ScanTime to user ScanTimeLimit*/
+	if(ScanTime > ScanTimeLimit())
+	{
+		/* Raise ERROR */
+	}
 
-	// /* Reset Task_Time vector and ScanTime after all of them been collected (executed at least one time) */
-	// if((Task_Time[0] > 0) && (Task_Time[1] > 0) && (Task_Time[2] > 0) && (Task_Time[3] > 0) && (Task_Time[4] > 0))
-	// {
-		// ScanTime = 0;
-		// for(i = 0; i < NUMBER_OF_TASKS; i++)
-		// {
-			// Task_Time[i] = 0;
-		// }
-	// }
+	osMutexWait(PrintMutexHandle, 1000);
 
-	// osMutexRelease(ScanMutexHandle);
+	for(i = 0; i < 4; i++)
+	{
+		printf("Task_Time[%d]: %d\r\n", i, Task_Time[i]);
+	}
+
+	osMutexRelease(PrintMutexHandle);
+
+	/* Reset Task_Time vector and ScanTime after all of them been collected (executed at least one time) */
+	if((Task_Time[0] > 0) && (Task_Time[1] > 0) && (Task_Time[2] > 0) && (Task_Time[3] > 0) && (Task_Time[4] > 0))
+	{
 
 
-	// Time_Result =  osKernelSysTick() - Initial_Time;
 
-	// /* Save task Time_Result at Task_Time vector*/
-	// osMutexWait(ScanMutexHandle, 1000);
-	// Task_Time[4] = Task_Time[4] + Time_Result;
-	// osMutexRelease(ScanMutexHandle);
+		ScanTime = 0;
+		for(i = 0; i < NUMBER_OF_TASKS; i++)
+		{
+			Task_Time[i] = 0;
+		}
+	}
+
+	osMutexRelease(ScanMutexHandle);
+
+
+	Time_Result =  osKernelSysTick() - Initial_Time;
+
+	/* Save task Time_Result at Task_Time vector*/
+	osMutexWait(ScanMutexHandle, 1000);
+	Task_Time[4] = Task_Time[4] + Time_Result;
+	osMutexRelease(ScanMutexHandle);
 
 	osDelay(10);
   }
