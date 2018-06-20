@@ -12,7 +12,7 @@
 /* User ScanTime selection between xx value to yy */
 int ScanTimeLimit()
 {
-	int TimeLimit = 5000;
+	int TimeLimit = 25;
 
 
 	return TimeLimit;

@@ -82,8 +82,7 @@ int Digital_Input = 0xF; // Pullup
 int Analog_Input; // Init state ?
 int SPI_Control;
 int Digital_Output = 0;
-// int Scan_time_flag;
-// int Task_Time[NUMBER_OF_TASKS];
+int Error_Flag = 0;
 TickType_t Task_Time[NUMBER_OF_TASKS];
 TickType_t ScanTimeGlobal = 0;
 /* USER CODE END Variables */
@@ -259,7 +258,7 @@ void StartInputRead(void const * argument)
 	  osMutexRelease(ScanMutexHandle);
 
 
-	  osDelay(5);
+	  osDelay(10);
   }
   /* USER CODE END StartInputRead */
 }
@@ -294,11 +293,10 @@ void StartRunUserProgram(void const * argument)
     osMutexWait(ScanMutexHandle, 1000);
     Time_Result =  osKernelSysTick() - Initial_Time;
     Task_Time[1] = Task_Time[1] + Time_Result;
-  //  printf("Task_Time[1]: %d\r\n", Task_Time[1]);
+    // printf("Task_Time[1]: %d\r\n", Task_Time[1]);
 	osMutexRelease(ScanMutexHandle);
 
-
-	osDelay(5);
+	osDelay(10);
   }
   /* USER CODE END StartRunUserProgram */
 }
@@ -367,8 +365,7 @@ void StartOutputUpdate(void const * argument)
 	// printf("Task_Time[2]: %d\r\n", Task_Time[2]);
 	osMutexRelease(ScanMutexHandle);
 
-
-    osDelay(5);
+	 osDelay(10);
   }
   /* USER CODE END StartOutputUpdate */
 }
@@ -392,31 +389,47 @@ void StartDisplayUpdate(void const * argument)
 	  /* SPI MUTEX - Display */
 	 osMutexWait(SPIMutexHandle, 1000);
 
-	 /* Converte Digital_Input para string em formato binário */
-	 DecimalToBin4bits(Digital_Input, StrBin);
-	 sprintf (StrBuffer, "DI: %sb", StrBin);
-	 LCD_Write_String(0,0,StrBuffer);
+	if(Error_Flag == 0)
+	{
+		/* Converte Digital_Input para string em formato binário */
+		DecimalToBin4bits(Digital_Input, StrBin);
+		sprintf (StrBuffer, "DI: %sb", StrBin);
+		LCD_Write_String(0,0,StrBuffer);
 
-	 /*
+		/*
 		osMutexWait(PrintMutexHandle, 1000);
 		printf("INPUT: %d\r\n", Digital_Input);
 		osMutexRelease(PrintMutexHandle);
-	*/
+		*/
 
-	 /* Converte Digital_Output para string em formato binário */
-	 DecimalToBin4bits(Digital_Output, StrBin);
-	 sprintf (StrBuffer, "DO: %sb", StrBin);
-	 LCD_Write_String(0,1,StrBuffer);
+		/* Converte Digital_Output para string em formato binário */
+		DecimalToBin4bits(Digital_Output, StrBin);
+		sprintf (StrBuffer, "DO: %sb", StrBin);
+		LCD_Write_String(0,1,StrBuffer);
 
-	 /* Converte o valor analógico lido para string em formato decimal*/
-	 sprintf (StrBuffer, "Analog: %d", Analog_Input);
-	 LCD_Write_String(0,2,StrBuffer);
+		/* Converte o valor analógico lido para string em formato decimal*/
+		sprintf (StrBuffer, "Analog: %d", Analog_Input);
+		LCD_Write_String(0,2,StrBuffer);
 
-	 osMutexWait(ScanMutexHandle, 1000);
-	 /* Imprime o ScanTime no display */
-	 sprintf (StrBuffer, "Scan: %dd", ScanTimeGlobal);
-	 LCD_Write_String(0,3,StrBuffer);
-	 osMutexRelease(ScanMutexHandle);
+		osMutexWait(ScanMutexHandle, 1000);
+		/* Imprime o ScanTime no display */
+		sprintf (StrBuffer, "Scan: %dd", ScanTimeGlobal);
+		LCD_Write_String(0,3,StrBuffer);
+		osMutexRelease(ScanMutexHandle);
+	 }
+	else
+	{
+		sprintf (StrBuffer, "             ");
+		LCD_Write_String(0,0,StrBuffer);
+		sprintf (StrBuffer, "#############");
+		LCD_Write_String(0,1,StrBuffer);
+		LCD_Write_String(0,2,StrBuffer);
+		LCD_Write_String(0,4,StrBuffer);
+		sprintf (StrBuffer, "             ");
+		LCD_Write_String(0,5,StrBuffer);
+		sprintf (StrBuffer, "#### ERRO ###");
+		LCD_Write_String(0,3,StrBuffer);
+	}
 
 	 osMutexRelease(SPIMutexHandle);
 
@@ -426,9 +439,10 @@ void StartDisplayUpdate(void const * argument)
 	osMutexWait(ScanMutexHandle, 1000);
 	Time_Result =  osKernelSysTick() - Initial_Time;
 	Task_Time[3] = Task_Time[3] + Time_Result;
+	// printf("Task_Time[3]: %d\r\n", Task_Time[3]);
 	osMutexRelease(ScanMutexHandle);
 
-    osDelay(5);
+	osDelay(10);
   }
   /* USER CODE END StartDisplayUpdate */
 }
@@ -441,7 +455,7 @@ void StartHouseKeeping(void const * argument)
 	TickType_t Initial_Time = 0;
 	TickType_t Time_Result;
 	TickType_t ScanTime = 0;
-	int AVG_Sample = 50;
+	int AVG_Sample = 30;
 	TickType_t AVG[AVG_Sample];
 	int AVG_Count = 0;
 	TickType_t AVG_Sum = 0;
@@ -469,14 +483,6 @@ void StartHouseKeeping(void const * argument)
   {
  Initial_Time = osKernelSysTick();
 
-  /*
-	if(ScanTime > ScanTimeLimit())
-	{
-
-	}
-	*/
-
-
 	/* Save task Time_Result at Task_Time vector*/
 	osMutexWait(ScanMutexHandle, 1000);
 
@@ -498,16 +504,11 @@ void StartHouseKeeping(void const * argument)
 	}
 
 
-
-	/* Compare ScanTime to user ScanTimeLimit*/
-	if(ScanTime > ScanTimeLimit())
-	{
-		/* Raise ERROR */
-	}
-
 	/* Reset Task_Time vector and ScanTime after all of them been collected (executed at least one time) */
 	if((Task_Time[0] > 0) && (Task_Time[1] > 0) && (Task_Time[2] > 0) && (Task_Time[3] > 0) && (Task_Time[4] > 0))
 	{
+
+		/* Reset average sum and sample counter*/
 		if(AVG_Count >= (AVG_Sample - 1))
 		{
 			ScanTimeGlobal = (AVG_Sum / AVG_Sample);
@@ -515,16 +516,24 @@ void StartHouseKeeping(void const * argument)
 			AVG_Count = 0;
 		}
 
+		/* Fill up AVG buffer until it reaches the number of samples*/
 		AVG[AVG_Count] = ScanTime;
 		AVG_Sum = AVG_Sum + AVG[AVG_Count];
 		AVG_Count++;
 
-
+		/* Compare ScanTime to user ScanTimeLimit*/
+		if(ScanTimeGlobal > ScanTimeLimit())
+		{
+			/* Raise ERROR */
+			printf("ScanTime: %d\r\n", ScanTime);
+			Error_Flag = 1;
+		}
 
 		// ScanTimeGlobal = ScanTime;
 		// debug_count++;
 		// printf("debug_count: %d\r\n", debug_count);
 
+		/* Reset the values of ScanTime and TaskTime variables */
 		ScanTime = 0;
 		for(i = 0; i < NUMBER_OF_TASKS; i++)
 		{
@@ -540,9 +549,10 @@ void StartHouseKeeping(void const * argument)
 	osMutexWait(ScanMutexHandle, 1000);
 	Time_Result =  osKernelSysTick() - Initial_Time;
 	Task_Time[4] = Task_Time[4] + Time_Result;
+	// printf("Task_Time[4]: %d\r\n", Task_Time[4]);
 	osMutexRelease(ScanMutexHandle);
 
-	osDelay(5);
+	osDelay(10);
   }
   /* USER CODE END StartHouseKeeping */
 }
