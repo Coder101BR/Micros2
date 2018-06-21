@@ -9,7 +9,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "UserProgram.h"
 
-/* User ScanTime selection between xx value to yy */
+/* User ScanTime selection */
 int ScanTimeLimit()
 {
 	int TimeLimit = 25;

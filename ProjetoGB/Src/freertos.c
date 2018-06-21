@@ -79,8 +79,7 @@ osMutexId SPIMutexHandle;
 #define NUMBER_OF_TASKS 5
 
 int Digital_Input = 0xF; // Pullup
-int Analog_Input; // Init state ?
-int SPI_Control;
+int Analog_Input = 0;
 int Digital_Output = 0;
 int Error_Flag = 0;
 TickType_t Task_Time[NUMBER_OF_TASKS];
@@ -196,14 +195,15 @@ void StartInputRead(void const * argument)
 	  /* SPI MUTEX - Analog read */
 	  osMutexWait(SPIMutexHandle, 1000);
 
+	  /* Enable !CS */
 	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, 0);
-	  init = 0xE; // Para o canal 1;
+	  init = 0xE; // CH1 selected;
 	  HAL_SPI_Transmit(&hspi1, &init, 1, 1000);
 
-	  /* Realizar a leitura do valor da conversão ADC do canal Selecionado */
+	  /* Receive data from CH1 in init variable */
 	  HAL_SPI_Receive(&hspi1, &init, 1, 1000);
 
-	  /* Desabilita !CS */
+	  /* Disable !CS */
 	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, 1);
 
 	  osMutexRelease(SPIMutexHandle);
@@ -228,7 +228,6 @@ void StartInputRead(void const * argument)
 			  count_temp++;
 			  if(count_temp >= 5)
 			  {
-
 				  Digital_Input = CurrectReading;
 				  count_temp = 0;
 				  break;
@@ -239,7 +238,6 @@ void StartInputRead(void const * argument)
 			  count_temp = 0;
 		  }
 
-		 // osDelay(10);
 	  }
 
 	  /* Copy value from ADC to Analog_Input*/
@@ -280,10 +278,6 @@ void StartRunUserProgram(void const * argument)
 
 	CallUserProgram(Analog_Input, Digital_Input, &Digital_Output);
 
-	// osMutexWait(PrintMutexHandle, 1000);
-	// printf("Analog: %d\r\n", Analog_Input);
-	// osMutexRelease(PrintMutexHandle);
-
 	osMutexRelease(OutputMutexHandle);
 	osMutexRelease(InputMutexHandle);
 
@@ -309,7 +303,6 @@ void StartOutputUpdate(void const * argument)
     int Mask = 1;
     int i;
 
-    TickType_t Final_Time = 0;
     TickType_t Initial_Time = 0;
     TickType_t Time_Result;
     Task_Time[2] = 0;
@@ -320,6 +313,7 @@ void StartOutputUpdate(void const * argument)
 
 	  osMutexWait(OutputMutexHandle, 1000);
 
+	  /* Convert the value of Digital_Output variable to the Hardware outputs */
       for(i =0; i < 4; i++)
       {
           WriteData[i] = (Digital_Output & Mask);
@@ -337,23 +331,11 @@ void StartOutputUpdate(void const * argument)
           Mask = Mask << 1;
       }
       Mask = 1;
-
-      /*
-	  	 osMutexWait(PrintMutexHandle, 1000);
-		 printf("OUTPUT: %d\r\n", Digital_Output);
-		 osMutexRelease(PrintMutexHandle);
-	  */
 	  
 	  HAL_GPIO_WritePin(GPIOA, Digital_Output_3_Pin, WriteData[3]);
 	  HAL_GPIO_WritePin(GPIOB, Digital_Output_2_Pin, WriteData[2]);
 	  HAL_GPIO_WritePin(GPIOB, Digital_Output_1_Pin, WriteData[1]);
 	  HAL_GPIO_WritePin(GPIOB, Digital_Output_0_Pin, WriteData[0]);
-
-	  /*
-	  	 osMutexWait(PrintMutexHandle, 1000);
-		 printf("WriteData(bin): %d %d %d %d\r\n", WriteData[3], WriteData[2], WriteData[1], WriteData[0]);
-		 osMutexRelease(PrintMutexHandle);
-	  */
 
 	  osMutexRelease(OutputMutexHandle);
 
@@ -391,28 +373,23 @@ void StartDisplayUpdate(void const * argument)
 
 	if(Error_Flag == 0)
 	{
-		/* Converte Digital_Input para string em formato binário */
+		/* Convert Digital_Input to string (binary format) */
 		DecimalToBin4bits(Digital_Input, StrBin);
 		sprintf (StrBuffer, "DI: %sb", StrBin);
 		LCD_Write_String(0,0,StrBuffer);
 
-		/*
-		osMutexWait(PrintMutexHandle, 1000);
-		printf("INPUT: %d\r\n", Digital_Input);
-		osMutexRelease(PrintMutexHandle);
-		*/
-
-		/* Converte Digital_Output para string em formato binário */
+		/* Convert Digital_Output to string (binary format) */
 		DecimalToBin4bits(Digital_Output, StrBin);
 		sprintf (StrBuffer, "DO: %sb", StrBin);
 		LCD_Write_String(0,1,StrBuffer);
 
-		/* Converte o valor analógico lido para string em formato decimal*/
+		/* Convert the analog reading to string (decimal format) */
 		sprintf (StrBuffer, "Analog: %d", Analog_Input);
 		LCD_Write_String(0,2,StrBuffer);
 
 		osMutexWait(ScanMutexHandle, 1000);
-		/* Imprime o ScanTime no display */
+
+		/* Convert the ScanTimeGlobal variable to string (decimal format) */
 		sprintf (StrBuffer, "Scan: %dd", ScanTimeGlobal);
 		LCD_Write_String(0,3,StrBuffer);
 		osMutexRelease(ScanMutexHandle);
@@ -496,15 +473,12 @@ void StartHouseKeeping(void const * argument)
 		if(Task_Time[i] > Task_Time_Previous[i])
 		{
 			ScanTime = ScanTime + Task_Time[i];
-
-			// logic to check if all Scans are new
 		}
 		Task_Time_Previous[i] = Task_Time[i];
-
 	}
 
 
-	/* Reset Task_Time vector and ScanTime after all of them been collected (executed at least one time) */
+	/* Reset Task_Time vector and ScanTime after all of them had been collected (executed at least one time) */
 	if((Task_Time[0] > 0) && (Task_Time[1] > 0) && (Task_Time[2] > 0) && (Task_Time[3] > 0) && (Task_Time[4] > 0))
 	{
 
@@ -525,7 +499,7 @@ void StartHouseKeeping(void const * argument)
 		if(ScanTimeGlobal > ScanTimeLimit())
 		{
 			/* Raise ERROR */
-			printf("ScanTime: %d\r\n", ScanTime);
+			// printf("ScanTime: %d\r\n", ScanTime);
 			Error_Flag = 1;
 		}
 
